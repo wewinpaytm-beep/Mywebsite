@@ -1,44 +1,89 @@
 <!DOCTYPE html>
 <html>
 <head>
-<title>Full Dashboard</title>
+<title>We Win PRO Dashboard</title>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 
 <style>
-body {font-family:Arial;margin:0;}
+body {margin:0;font-family:Arial;}
 .header {background:#002b5c;color:white;padding:10px;text-align:center;}
-.content {padding:20px;}
-button {padding:8px;margin:5px;}
+.sidebar {width:200px;height:100vh;background:#1e3a5f;position:fixed;color:white;}
+.sidebar button {width:90%;margin:10px;padding:10px;background:#4facfe;color:white;border:none;}
+.content {margin-left:210px;padding:20px;}
 table {width:100%;border-collapse:collapse;margin-top:10px;}
 th,td {border:1px solid #ccc;padding:5px;text-align:center;}
 th {background:#ddd;}
+.login {width:300px;margin:100px auto;padding:20px;background:white;text-align:center;border-radius:10px;}
 </style>
+
 </head>
 
 <body>
 
-<div class="header">We Win | आयुष्मान संपर्क - Dashboard</div>
+<!-- LOGIN -->
+<div id="loginPage" class="login">
+<h2>Login</h2>
+<input id="user" placeholder="User ID"><br>
+<input id="pass" type="password" placeholder="Password"><br>
+<button onclick="login()">Login</button>
+<p id="error" style="color:red;"></p>
+</div>
+
+<!-- DASHBOARD -->
+<div id="dashboard" style="display:none;">
+
+<div class="header">
+We Win | आयुष्मान संपर्क
+<span style="float:right;">
+<button onclick="logout()">Logout</button>
+</span>
+</div>
+
+<div class="sidebar">
+<button onclick="showSummary()">Summary</button>
+<button onclick="showRaw()">Raw</button>
+<button onclick="deleteData()">Delete</button>
+</div>
 
 <div class="content">
 
+<h3>Select Date</h3>
 <input type="date" id="date">
+
+<h3>Upload Excel</h3>
 <input type="file" onchange="uploadFile(event)">
 <p id="msg"></p>
 
-<button onclick="showSummary()">Summary View</button>
-<button onclick="showRaw()">Raw Data</button>
-<button onclick="deleteData()">Delete</button>
+<h3>Filter</h3>
+<input id="filter" placeholder="Search TL / Agent" onkeyup="showSummary()">
 
 <div id="output"></div>
 
 </div>
+</div>
 
 <script>
 
+function login(){
+  let u=document.getElementById("user").value;
+  let p=document.getElementById("pass").value;
+
+  if(u=="8090524232" && p=="0123"){
+    document.getElementById("loginPage").style.display="none";
+    document.getElementById("dashboard").style.display="block";
+  }else{
+    document.getElementById("error").innerText="Invalid Login";
+  }
+}
+
+function logout(){
+  location.reload();
+}
+
 function uploadFile(e){
   document.getElementById("msg").innerText="Uploading...";
-  
+
   let file=e.target.files[0];
   let reader=new FileReader();
 
@@ -57,25 +102,29 @@ function uploadFile(e){
   reader.readAsArrayBuffer(file);
 }
 
-function getWeek(date){
-  let d=new Date(date);
-  let onejan=new Date(d.getFullYear(),0,1);
-  return Math.ceil((((d-onejan)/86400000)+onejan.getDay()+1)/7);
+function getWeek(d){
+  let date=new Date(d);
+  let onejan=new Date(date.getFullYear(),0,1);
+  return Math.ceil((((date-onejan)/86400000)+onejan.getDay()+1)/7);
 }
 
 function showSummary(){
 
   let date=document.getElementById("date").value;
+  let filter=document.getElementById("filter").value.toLowerCase();
   let data=JSON.parse(localStorage.getItem("data_"+date))||[];
 
   let tl={},agent={},shift={},week={};
 
   data.forEach(r=>{
+
     let tlName=r["TL Name"]||"";
     let ag=r["Agent Name"]||"";
     let sh=r["Shift"]||"";
     let off=+r["Offered Calls"]||0;
     let ans=+r["IB Ans Calls"]||0;
+
+    if(filter && !(tlName.toLowerCase().includes(filter) || ag.toLowerCase().includes(filter))) return;
 
     // TL
     if(!tl[tlName]) tl[tlName]={off:0,ans:0};
@@ -93,29 +142,22 @@ function showSummary(){
     let w=getWeek(date);
     if(!week[w]) week[w]={off:0,ans:0};
     week[w].off+=off; week[w].ans+=ans;
+
   });
 
-  let html="";
-
-  function makeTable(title,obj){
+  function table(title,obj){
     let h=`<h3>${title}</h3><table><tr><th>Name</th><th>Offered</th><th>Answered</th></tr>`;
     for(let k in obj){
       h+=`<tr><td>${k}</td><td>${obj[k].off}</td><td>${obj[k].ans}</td></tr>`;
     }
-    h+="</table>";
-    return h;
+    return h+"</table>";
   }
 
-  html+=makeTable("TL Summary",tl);
-  html+=makeTable("Agent Summary",agent);
-  html+=makeTable("Shift Summary",shift);
-  html+=makeTable("Week Summary",week);
-
-  html+=`<h3>Date Summary</h3>
-  <table>
-  <tr><th>Date</th><th>Total Calls</th></tr>
-  <tr><td>${date}</td><td>${Object.values(tl).reduce((a,b)=>a+b.off,0)}</td></tr>
-  </table>`;
+  let html="";
+  html+=table("TL Summary",tl);
+  html+=table("Agent Summary",agent);
+  html+=table("Shift Summary",shift);
+  html+=table("Week Summary",week);
 
   document.getElementById("output").innerHTML=html;
 }
@@ -126,7 +168,7 @@ function showRaw(){
 
   let html="<table>";
 
-  if(data.length>0){
+  if(data.length){
     html+="<tr>";
     Object.keys(data[0]).forEach(k=>html+="<th>"+k+"</th>");
     html+="</tr>";
@@ -145,8 +187,8 @@ function showRaw(){
 function deleteData(){
   let date=document.getElementById("date").value;
   localStorage.removeItem("data_"+date);
-  document.getElementById("output").innerHTML="";
   alert("Deleted");
+  document.getElementById("output").innerHTML="";
 }
 
 </script>
