@@ -1,84 +1,204 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Login + Dashboard</title>
+<title>We Win Dashboard</title>
 
-  <style>
-    body {
-      margin: 0;
-      font-family: Arial;
-      background: linear-gradient(to right, #4facfe, #00f2fe);
-    }
+<style>
+body {
+  margin:0;
+  font-family: Arial;
+}
 
-    .login-box, .dashboard {
-      width: 300px;
-      background: white;
-      padding: 20px;
-      margin: 100px auto;
-      border-radius: 10px;
-      text-align: center;
-    }
+/* HEADER */
+.header {
+  background:#002b5c;
+  color:white;
+  padding:15px;
+  text-align:center;
+  font-size:20px;
+}
 
-    input {
-      width: 90%;
-      padding: 10px;
-      margin: 10px 0;
-    }
+/* SIDEBAR */
+.sidebar {
+  width:220px;
+  height:100vh;
+  background:#1e3a5f;
+  position:fixed;
+  color:white;
+  padding-top:20px;
+}
 
-    button {
-      padding: 10px;
-      width: 100%;
-      background: blue;
-      color: white;
-      border: none;
-    }
+.sidebar button {
+  width:90%;
+  margin:10px;
+  padding:10px;
+  background:#4facfe;
+  border:none;
+  color:white;
+  cursor:pointer;
+}
 
-    .dashboard {
-      display: none;
-    }
-  </style>
+/* CONTENT */
+.content {
+  margin-left:230px;
+  padding:20px;
+}
 
+/* LOGIN */
+.login-box {
+  width:300px;
+  margin:100px auto;
+  padding:20px;
+  background:white;
+  text-align:center;
+  border-radius:10px;
+}
+
+input {
+  width:90%;
+  padding:10px;
+  margin:10px 0;
+}
+
+/* TABLE */
+table {
+  width:100%;
+  border-collapse: collapse;
+  font-size:12px;
+}
+th, td {
+  border:1px solid #ccc;
+  padding:5px;
+}
+th {
+  background:#ddd;
+}
+
+</style>
 </head>
 
 <body>
 
 <!-- LOGIN PAGE -->
-<div class="login-box" id="loginPage">
+<div id="loginPage" class="login-box">
   <h2>Login</h2>
-
-  <input type="text" id="userid" placeholder="User ID">
-  <input type="password" id="password" placeholder="Password">
-
+  <input id="user" placeholder="User ID">
+  <input id="pass" type="password" placeholder="Password">
   <button onclick="login()">Login</button>
-
   <p id="error" style="color:red;"></p>
 </div>
 
 <!-- DASHBOARD -->
-<div class="dashboard" id="dashboardPage">
-  <h2>Dashboard</h2>
-  <p>Welcome User</p>
+<div id="dashboard" style="display:none;">
 
-  <button onclick="logout()">Logout</button>
+<div class="header">
+  We Win | आयुष्मान संपर्क
+  <span style="float:right; margin-right:20px;">
+    👤 Profile | <button onclick="logout()">Logout</button>
+  </span>
+</div>
+
+<div class="sidebar">
+  <button onclick="showSection('team')">Team Leader Report</button>
+  <button onclick="showSection('shift')">Shift Report</button>
+  <button onclick="showSection('week')">Week Report</button>
+  <button onclick="showSection('agent')">Agent Report</button>
+</div>
+
+<div class="content">
+
+<!-- TEAM REPORT -->
+<div id="team" class="section">
+<h3>Team Leader Wise Productivity Report</h3>
+
+<table>
+<tr>
+<th>TL Name</th><th>Staff time</th><th>Ready Time</th><th>Not Ready</th>
+<th>Offered</th><th>IB Ans</th><th>Abandoned</th>
+<th>IB AHT</th><th>OB Calls</th><th>OB AHT</th>
+<th>Ab%</th><th>0-30%</th><th>30-3m%</th><th>3-5m%</th><th>5m+</th>
+<th>Ring%</th><th>Idle%</th><th>Talk%</th><th>Wrap%</th>
+</tr>
+
+<tr>
+<td>Babita</td><td>08:00</td><td>07:00</td><td>01:00</td>
+<td>500</td><td>480</td><td>20</td>
+<td>200</td><td>150</td><td>30</td>
+<td>4%</td><td>20%</td><td>30%</td><td>25%</td><td>25%</td>
+<td>5%</td><td>10%</td><td>60%</td><td>25%</td>
+</tr>
+
+</table>
+</div>
+
+<!-- SHIFT REPORT -->
+<div id="shift" class="section" style="display:none;">
+<h3>Shift Wise Productivity Report</h3>
+<p>Shift data yahan show hoga</p>
+</div>
+
+<!-- WEEK REPORT -->
+<div id="week" class="section" style="display:none;">
+<h3>Week Wise Productivity Report</h3>
+<p>Week data yahan show hoga</p>
+</div>
+
+<!-- AGENT REPORT -->
+<div id="agent" class="section" style="display:none;">
+<h3>Agent Productivity Report</h3>
+
+<table>
+<tr>
+<th>Agent ID</th><th>Name</th><th>TL</th><th>Shift</th>
+<th>Staff</th><th>Ready</th><th>Break</th>
+<th>Offered</th><th>IB Ans</th><th>Abandoned</th>
+<th>AHT</th><th>OB Calls</th><th>OB AHT</th>
+<th>Ab%</th><th>0-30%</th><th>30-3m%</th>
+<th>3-5m%</th><th>5m+</th><th>Ring%</th>
+<th>Idle%</th><th>Talk%</th><th>Wrap%</th>
+</tr>
+
+<tr>
+<td>S1040</td><td>Pushpa</td><td>Babita</td><td>Morning</td>
+<td>#####</td><td>###</td><td>13:09</td>
+<td>545</td><td>543</td><td>2</td>
+<td>193</td><td>196</td><td>31</td>
+<td>0.4%</td><td>###</td><td>###</td>
+<td>###</td><td>###</td><td>0.1%</td>
+<td>###</td><td>###</td><td>2%</td>
+</tr>
+
+</table>
+</div>
+
+</div>
 </div>
 
 <script>
-  function login() {
-    var user = document.getElementById("userid").value;
-    var pass = document.getElementById("password").value;
+function login(){
+  var u=document.getElementById("user").value;
+  var p=document.getElementById("pass").value;
 
-    if(user == "8090524232" && pass == "0123") {
-      document.getElementById("loginPage").style.display = "none";
-      document.getElementById("dashboardPage").style.display = "block";
-    } else {
-      document.getElementById("error").innerText = "Invalid ID or Password";
-    }
+  if(u=="8090524232" && p=="0123"){
+    document.getElementById("loginPage").style.display="none";
+    document.getElementById("dashboard").style.display="block";
+  }else{
+    document.getElementById("error").innerText="Invalid Login";
   }
+}
 
-  function logout() {
-    document.getElementById("loginPage").style.display = "block";
-    document.getElementById("dashboardPage").style.display = "none";
+function logout(){
+  document.getElementById("loginPage").style.display="block";
+  document.getElementById("dashboard").style.display="none";
+}
+
+function showSection(id){
+  var sections=document.getElementsByClassName("section");
+  for(var i=0;i<sections.length;i++){
+    sections[i].style.display="none";
   }
+  document.getElementById(id).style.display="block";
+}
 </script>
 
 </body>
