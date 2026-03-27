@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-<title>Daily Dashboard</title>
+<title>Full Dashboard</title>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 
@@ -9,128 +9,144 @@
 body {font-family:Arial;margin:0;}
 .header {background:#002b5c;color:white;padding:10px;text-align:center;}
 .content {padding:20px;}
-table {width:100%;border-collapse:collapse;}
+button {padding:8px;margin:5px;}
+table {width:100%;border-collapse:collapse;margin-top:10px;}
 th,td {border:1px solid #ccc;padding:5px;text-align:center;}
 th {background:#ddd;}
-.upload {margin:20px 0;}
 </style>
-
 </head>
 
 <body>
 
-<div class="header">We Win | आयुष्मान संपर्क - Daily Dashboard</div>
+<div class="header">We Win | आयुष्मान संपर्क - Dashboard</div>
 
 <div class="content">
 
-<h3>Upload Daily Excel</h3>
-<input type="file" class="upload" onchange="handleFile(event)">
+<input type="date" id="date">
+<input type="file" onchange="uploadFile(event)">
+<p id="msg"></p>
 
-<h3>Team Leader Summary (Auto)</h3>
-<table id="tlTable">
-<tr>
-<th>TL Name</th>
-<th>Total Calls</th>
-<th>Answered</th>
-<th>Abandoned</th>
-</tr>
-</table>
+<button onclick="showSummary()">Summary View</button>
+<button onclick="showRaw()">Raw Data</button>
+<button onclick="deleteData()">Delete</button>
 
-<h3>Agent Productivity Report</h3>
-<table id="agentTable">
-<tr>
-<th>Agent ID</th>
-<th>Name</th>
-<th>TL</th>
-<th>Offered</th>
-<th>Answered</th>
-<th>Abandoned</th>
-</tr>
-</table>
+<div id="output"></div>
 
 </div>
 
 <script>
 
-function handleFile(e){
-  var file = e.target.files[0];
-  var reader = new FileReader();
+function uploadFile(e){
+  document.getElementById("msg").innerText="Uploading...";
+  
+  let file=e.target.files[0];
+  let reader=new FileReader();
 
-  reader.onload = function(event){
-    var data = new Uint8Array(event.target.result);
-    var workbook = XLSX.read(data, {type:"array"});
-    var sheet = workbook.Sheets[workbook.SheetNames[0]];
-    var json = XLSX.utils.sheet_to_json(sheet);
+  reader.onload=function(event){
+    let data=new Uint8Array(event.target.result);
+    let wb=XLSX.read(data,{type:"array"});
+    let sheet=wb.Sheets[wb.SheetNames[0]];
+    let json=XLSX.utils.sheet_to_json(sheet);
 
-    processData(json);
+    let date=document.getElementById("date").value;
+    localStorage.setItem("data_"+date, JSON.stringify(json));
+
+    document.getElementById("msg").innerText="Upload Successful ✅";
   };
 
   reader.readAsArrayBuffer(file);
 }
 
-function processData(data){
+function getWeek(date){
+  let d=new Date(date);
+  let onejan=new Date(d.getFullYear(),0,1);
+  return Math.ceil((((d-onejan)/86400000)+onejan.getDay()+1)/7);
+}
 
-  var agentTable = document.getElementById("agentTable");
-  var tlTable = document.getElementById("tlTable");
+function showSummary(){
 
-  agentTable.innerHTML = `
-<tr>
-<th>Agent ID</th><th>Name</th><th>TL</th>
-<th>Offered</th><th>Answered</th><th>Abandoned</th>
-</tr>`;
+  let date=document.getElementById("date").value;
+  let data=JSON.parse(localStorage.getItem("data_"+date))||[];
 
-  tlTable.innerHTML = `
-<tr>
-<th>TL Name</th><th>Total Calls</th><th>Answered</th><th>Abandoned</th>
-</tr>`;
+  let tl={},agent={},shift={},week={};
 
-  let tlSummary = {};
+  data.forEach(r=>{
+    let tlName=r["TL Name"]||"";
+    let ag=r["Agent Name"]||"";
+    let sh=r["Shift"]||"";
+    let off=+r["Offered Calls"]||0;
+    let ans=+r["IB Ans Calls"]||0;
 
-  data.forEach(row => {
+    // TL
+    if(!tl[tlName]) tl[tlName]={off:0,ans:0};
+    tl[tlName].off+=off; tl[tlName].ans+=ans;
 
-    let id = row["Agent ID"] || "";
-    let name = row["Agent Name"] || "";
-    let tl = row["TL Name"] || "";
-    let offered = Number(row["Offered Calls"] || 0);
-    let answered = Number(row["IB Ans Calls"] || 0);
-    let abandoned = Number(row["IB Abandoned"] || 0);
+    // Agent
+    if(!agent[ag]) agent[ag]={off:0,ans:0};
+    agent[ag].off+=off; agent[ag].ans+=ans;
 
-    // Agent Table
-    let tr = `<tr>
-      <td>${id}</td>
-      <td>${name}</td>
-      <td>${tl}</td>
-      <td>${offered}</td>
-      <td>${answered}</td>
-      <td>${abandoned}</td>
-    </tr>`;
+    // Shift
+    if(!shift[sh]) shift[sh]={off:0,ans:0};
+    shift[sh].off+=off; shift[sh].ans+=ans;
 
-    agentTable.innerHTML += tr;
-
-    // TL Summary
-    if(!tlSummary[tl]){
-      tlSummary[tl] = {offered:0, answered:0, abandoned:0};
-    }
-
-    tlSummary[tl].offered += offered;
-    tlSummary[tl].answered += answered;
-    tlSummary[tl].abandoned += abandoned;
+    // Week
+    let w=getWeek(date);
+    if(!week[w]) week[w]={off:0,ans:0};
+    week[w].off+=off; week[w].ans+=ans;
   });
 
-  // TL Table Fill
-  for(let tl in tlSummary){
-    let row = tlSummary[tl];
+  let html="";
 
-    let tr = `<tr>
-      <td>${tl}</td>
-      <td>${row.offered}</td>
-      <td>${row.answered}</td>
-      <td>${row.abandoned}</td>
-    </tr>`;
-
-    tlTable.innerHTML += tr;
+  function makeTable(title,obj){
+    let h=`<h3>${title}</h3><table><tr><th>Name</th><th>Offered</th><th>Answered</th></tr>`;
+    for(let k in obj){
+      h+=`<tr><td>${k}</td><td>${obj[k].off}</td><td>${obj[k].ans}</td></tr>`;
+    }
+    h+="</table>";
+    return h;
   }
 
+  html+=makeTable("TL Summary",tl);
+  html+=makeTable("Agent Summary",agent);
+  html+=makeTable("Shift Summary",shift);
+  html+=makeTable("Week Summary",week);
+
+  html+=`<h3>Date Summary</h3>
+  <table>
+  <tr><th>Date</th><th>Total Calls</th></tr>
+  <tr><td>${date}</td><td>${Object.values(tl).reduce((a,b)=>a+b.off,0)}</td></tr>
+  </table>`;
+
+  document.getElementById("output").innerHTML=html;
+}
+
+function showRaw(){
+  let date=document.getElementById("date").value;
+  let data=JSON.parse(localStorage.getItem("data_"+date))||[];
+
+  let html="<table>";
+
+  if(data.length>0){
+    html+="<tr>";
+    Object.keys(data[0]).forEach(k=>html+="<th>"+k+"</th>");
+    html+="</tr>";
+
+    data.forEach(r=>{
+      html+="<tr>";
+      Object.values(r).forEach(v=>html+="<td>"+v+"</td>");
+      html+="</tr>";
+    });
+  }
+
+  html+="</table>";
+  document.getElementById("output").innerHTML=html;
+}
+
+function deleteData(){
+  let date=document.getElementById("date").value;
+  localStorage.removeItem("data_"+date);
+  document.getElementById("output").innerHTML="";
+  alert("Deleted");
 }
 
 </script>
