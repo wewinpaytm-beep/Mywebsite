@@ -1,203 +1,81 @@
 <!DOCTYPE html>
 <html>
 <head>
-<title>We Win Dashboard</title>
+<title>Dashboard with Excel Upload</title>
 
 <style>
-body {
-  margin:0;
-  font-family: Arial;
-}
-
-/* HEADER */
-.header {
-  background:#002b5c;
-  color:white;
-  padding:15px;
-  text-align:center;
-  font-size:20px;
-}
-
-/* SIDEBAR */
-.sidebar {
-  width:220px;
-  height:100vh;
-  background:#1e3a5f;
-  position:fixed;
-  color:white;
-  padding-top:20px;
-}
-
-.sidebar button {
-  width:90%;
-  margin:10px;
-  padding:10px;
-  background:#4facfe;
-  border:none;
-  color:white;
-  cursor:pointer;
-}
-
-/* CONTENT */
-.content {
-  margin-left:230px;
-  padding:20px;
-}
-
-/* LOGIN */
-.login-box {
-  width:300px;
-  margin:100px auto;
-  padding:20px;
-  background:white;
-  text-align:center;
-  border-radius:10px;
-}
-
-input {
-  width:90%;
-  padding:10px;
-  margin:10px 0;
-}
-
-/* TABLE */
-table {
-  width:100%;
-  border-collapse: collapse;
-  font-size:12px;
-}
-th, td {
-  border:1px solid #ccc;
-  padding:5px;
-}
-th {
-  background:#ddd;
-}
-
+body {font-family:Arial;}
+.header {background:#002b5c;color:white;padding:10px;text-align:center;}
+.sidebar {width:200px;height:100vh;background:#1e3a5f;position:fixed;}
+.sidebar button {width:90%;margin:10px;padding:10px;color:white;background:#4facfe;border:none;}
+.content {margin-left:210px;padding:20px;}
+table {width:100%;border-collapse:collapse;}
+th,td {border:1px solid #ccc;padding:5px;}
 </style>
+
 </head>
 
 <body>
 
-<!-- LOGIN PAGE -->
-<div id="loginPage" class="login-box">
-  <h2>Login</h2>
-  <input id="user" placeholder="User ID">
-  <input id="pass" type="password" placeholder="Password">
-  <button onclick="login()">Login</button>
-  <p id="error" style="color:red;"></p>
-</div>
-
-<!-- DASHBOARD -->
-<div id="dashboard" style="display:none;">
-
-<div class="header">
-  We Win | आयुष्मान संपर्क
-  <span style="float:right; margin-right:20px;">
-    👤 Profile | <button onclick="logout()">Logout</button>
-  </span>
-</div>
+<div class="header">We Win | आयुष्मान संपर्क</div>
 
 <div class="sidebar">
-  <button onclick="showSection('team')">Team Leader Report</button>
-  <button onclick="showSection('shift')">Shift Report</button>
-  <button onclick="showSection('week')">Week Report</button>
-  <button onclick="showSection('agent')">Agent Report</button>
+<button onclick="show('agent')">Agent Report</button>
 </div>
 
 <div class="content">
 
-<!-- TEAM REPORT -->
-<div id="team" class="section">
-<h3>Team Leader Wise Productivity Report</h3>
+<h3>Upload Excel</h3>
+<input type="file" id="file" onchange="readExcel()">
 
-<table>
-<tr>
-<th>TL Name</th><th>Staff time</th><th>Ready Time</th><th>Not Ready</th>
-<th>Offered</th><th>IB Ans</th><th>Abandoned</th>
-<th>IB AHT</th><th>OB Calls</th><th>OB AHT</th>
-<th>Ab%</th><th>0-30%</th><th>30-3m%</th><th>3-5m%</th><th>5m+</th>
-<th>Ring%</th><th>Idle%</th><th>Talk%</th><th>Wrap%</th>
-</tr>
-
-<tr>
-<td>Babita</td><td>08:00</td><td>07:00</td><td>01:00</td>
-<td>500</td><td>480</td><td>20</td>
-<td>200</td><td>150</td><td>30</td>
-<td>4%</td><td>20%</td><td>30%</td><td>25%</td><td>25%</td>
-<td>5%</td><td>10%</td><td>60%</td><td>25%</td>
-</tr>
-
-</table>
-</div>
-
-<!-- SHIFT REPORT -->
-<div id="shift" class="section" style="display:none;">
-<h3>Shift Wise Productivity Report</h3>
-<p>Shift data yahan show hoga</p>
-</div>
-
-<!-- WEEK REPORT -->
-<div id="week" class="section" style="display:none;">
-<h3>Week Wise Productivity Report</h3>
-<p>Week data yahan show hoga</p>
-</div>
-
-<!-- AGENT REPORT -->
-<div id="agent" class="section" style="display:none;">
+<div id="agent">
 <h3>Agent Productivity Report</h3>
 
-<table>
+<table id="table">
 <tr>
-<th>Agent ID</th><th>Name</th><th>TL</th><th>Shift</th>
-<th>Staff</th><th>Ready</th><th>Break</th>
-<th>Offered</th><th>IB Ans</th><th>Abandoned</th>
-<th>AHT</th><th>OB Calls</th><th>OB AHT</th>
-<th>Ab%</th><th>0-30%</th><th>30-3m%</th>
-<th>3-5m%</th><th>5m+</th><th>Ring%</th>
-<th>Idle%</th><th>Talk%</th><th>Wrap%</th>
+<th>Agent ID</th>
+<th>Name</th>
+<th>TL</th>
+<th>Shift</th>
+<th>Offered</th>
+<th>IB Ans</th>
+<th>Abandoned</th>
 </tr>
-
-<tr>
-<td>S1040</td><td>Pushpa</td><td>Babita</td><td>Morning</td>
-<td>#####</td><td>###</td><td>13:09</td>
-<td>545</td><td>543</td><td>2</td>
-<td>193</td><td>196</td><td>31</td>
-<td>0.4%</td><td>###</td><td>###</td>
-<td>###</td><td>###</td><td>0.1%</td>
-<td>###</td><td>###</td><td>2%</td>
-</tr>
-
 </table>
-</div>
 
 </div>
+
 </div>
 
 <script>
-function login(){
-  var u=document.getElementById("user").value;
-  var p=document.getElementById("pass").value;
+function readExcel(){
+  var file=document.getElementById("file").files[0];
+  var reader=new FileReader();
 
-  if(u=="8090524232" && p=="0123"){
-    document.getElementById("loginPage").style.display="none";
-    document.getElementById("dashboard").style.display="block";
-  }else{
-    document.getElementById("error").innerText="Invalid Login";
-  }
-}
+  reader.onload=function(e){
+    var data=e.target.result;
+    var rows=data.split("\n");
 
-function logout(){
-  document.getElementById("loginPage").style.display="block";
-  document.getElementById("dashboard").style.display="none";
-}
+    var table=document.getElementById("table");
 
-function showSection(id){
-  var sections=document.getElementsByClassName("section");
-  for(var i=0;i<sections.length;i++){
-    sections[i].style.display="none";
-  }
-  document.getElementById(id).style.display="block";
+    for(var i=1;i<rows.length;i++){
+      var cols=rows[i].split(",");
+
+      var tr="<tr>";
+      tr+="<td>"+cols[0]+"</td>";
+      tr+="<td>"+cols[1]+"</td>";
+      tr+="<td>"+cols[2]+"</td>";
+      tr+="<td>"+cols[3]+"</td>";
+      tr+="<td>"+cols[7]+"</td>";
+      tr+="<td>"+cols[8]+"</td>";
+      tr+="<td>"+cols[9]+"</td>";
+      tr+="</tr>";
+
+      table.innerHTML+=tr;
+    }
+  };
+
+  reader.readAsText(file);
 }
 </script>
 
