@@ -1,82 +1,138 @@
 <!DOCTYPE html>
 <html>
 <head>
-<title>Dashboard with Excel Upload</title>
+<title>Daily Dashboard</title>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 
 <style>
-body {font-family:Arial;}
+body {font-family:Arial;margin:0;}
 .header {background:#002b5c;color:white;padding:10px;text-align:center;}
-.sidebar {width:200px;height:100vh;background:#1e3a5f;position:fixed;}
-.sidebar button {width:90%;margin:10px;padding:10px;color:white;background:#4facfe;border:none;}
-.content {margin-left:210px;padding:20px;}
+.content {padding:20px;}
 table {width:100%;border-collapse:collapse;}
-th,td {border:1px solid #ccc;padding:5px;}
+th,td {border:1px solid #ccc;padding:5px;text-align:center;}
+th {background:#ddd;}
+.upload {margin:20px 0;}
 </style>
 
 </head>
 
 <body>
 
-<div class="header">We Win | आयुष्मान संपर्क</div>
-
-<div class="sidebar">
-<button onclick="show('agent')">Agent Report</button>
-</div>
+<div class="header">We Win | आयुष्मान संपर्क - Daily Dashboard</div>
 
 <div class="content">
 
-<h3>Upload Excel</h3>
-<input type="file" id="file" onchange="readExcel()">
+<h3>Upload Daily Excel</h3>
+<input type="file" class="upload" onchange="handleFile(event)">
 
-<div id="agent">
+<h3>Team Leader Summary (Auto)</h3>
+<table id="tlTable">
+<tr>
+<th>TL Name</th>
+<th>Total Calls</th>
+<th>Answered</th>
+<th>Abandoned</th>
+</tr>
+</table>
+
 <h3>Agent Productivity Report</h3>
-
-<table id="table">
+<table id="agentTable">
 <tr>
 <th>Agent ID</th>
 <th>Name</th>
 <th>TL</th>
-<th>Shift</th>
 <th>Offered</th>
-<th>IB Ans</th>
+<th>Answered</th>
 <th>Abandoned</th>
 </tr>
 </table>
 
 </div>
 
-</div>
-
 <script>
-function readExcel(){
-  var file=document.getElementById("file").files[0];
-  var reader=new FileReader();
 
-  reader.onload=function(e){
-    var data=e.target.result;
-    var rows=data.split("\n");
+function handleFile(e){
+  var file = e.target.files[0];
+  var reader = new FileReader();
 
-    var table=document.getElementById("table");
+  reader.onload = function(event){
+    var data = new Uint8Array(event.target.result);
+    var workbook = XLSX.read(data, {type:"array"});
+    var sheet = workbook.Sheets[workbook.SheetNames[0]];
+    var json = XLSX.utils.sheet_to_json(sheet);
 
-    for(var i=1;i<rows.length;i++){
-      var cols=rows[i].split(",");
-
-      var tr="<tr>";
-      tr+="<td>"+cols[0]+"</td>";
-      tr+="<td>"+cols[1]+"</td>";
-      tr+="<td>"+cols[2]+"</td>";
-      tr+="<td>"+cols[3]+"</td>";
-      tr+="<td>"+cols[7]+"</td>";
-      tr+="<td>"+cols[8]+"</td>";
-      tr+="<td>"+cols[9]+"</td>";
-      tr+="</tr>";
-
-      table.innerHTML+=tr;
-    }
+    processData(json);
   };
 
-  reader.readAsText(file);
+  reader.readAsArrayBuffer(file);
 }
+
+function processData(data){
+
+  var agentTable = document.getElementById("agentTable");
+  var tlTable = document.getElementById("tlTable");
+
+  agentTable.innerHTML = `
+<tr>
+<th>Agent ID</th><th>Name</th><th>TL</th>
+<th>Offered</th><th>Answered</th><th>Abandoned</th>
+</tr>`;
+
+  tlTable.innerHTML = `
+<tr>
+<th>TL Name</th><th>Total Calls</th><th>Answered</th><th>Abandoned</th>
+</tr>`;
+
+  let tlSummary = {};
+
+  data.forEach(row => {
+
+    let id = row["Agent ID"] || "";
+    let name = row["Agent Name"] || "";
+    let tl = row["TL Name"] || "";
+    let offered = Number(row["Offered Calls"] || 0);
+    let answered = Number(row["IB Ans Calls"] || 0);
+    let abandoned = Number(row["IB Abandoned"] || 0);
+
+    // Agent Table
+    let tr = `<tr>
+      <td>${id}</td>
+      <td>${name}</td>
+      <td>${tl}</td>
+      <td>${offered}</td>
+      <td>${answered}</td>
+      <td>${abandoned}</td>
+    </tr>`;
+
+    agentTable.innerHTML += tr;
+
+    // TL Summary
+    if(!tlSummary[tl]){
+      tlSummary[tl] = {offered:0, answered:0, abandoned:0};
+    }
+
+    tlSummary[tl].offered += offered;
+    tlSummary[tl].answered += answered;
+    tlSummary[tl].abandoned += abandoned;
+  });
+
+  // TL Table Fill
+  for(let tl in tlSummary){
+    let row = tlSummary[tl];
+
+    let tr = `<tr>
+      <td>${tl}</td>
+      <td>${row.offered}</td>
+      <td>${row.answered}</td>
+      <td>${row.abandoned}</td>
+    </tr>`;
+
+    tlTable.innerHTML += tr;
+  }
+
+}
+
 </script>
 
 </body>
