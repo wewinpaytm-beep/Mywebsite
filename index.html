@@ -1,53 +1,39 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Login Page</title>
+  <title>Login + Dashboard</title>
 
   <style>
     body {
       margin: 0;
-      padding: 0;
       font-family: Arial;
       background: linear-gradient(to right, #4facfe, #00f2fe);
     }
 
-    .login-box {
+    .login-box, .dashboard {
       width: 300px;
       background: white;
-      padding: 30px;
+      padding: 20px;
       margin: 100px auto;
-      border-radius: 15px;
+      border-radius: 10px;
       text-align: center;
-    }
-
-    h2 {
-      margin-bottom: 20px;
     }
 
     input {
       width: 90%;
       padding: 10px;
       margin: 10px 0;
-      border-radius: 8px;
-      border: 1px solid #ccc;
     }
 
     button {
-      width: 100%;
       padding: 10px;
-      background: #4facfe;
+      width: 100%;
+      background: blue;
       color: white;
       border: none;
-      border-radius: 8px;
-      cursor: pointer;
     }
 
-    button:hover {
-      background: #007bff;
-    }
-
-    .error {
-      color: red;
+    .dashboard {
       display: none;
     }
   </style>
@@ -56,29 +42,44 @@
 
 <body>
 
-  <div class="login-box">
-    <h2>Login</h2>
+<!-- LOGIN PAGE -->
+<div class="login-box" id="loginPage">
+  <h2>Login</h2>
 
-    <input type="text" id="username" placeholder="Username">
-    <input type="password" id="password" placeholder="Password">
+  <input type="text" id="userid" placeholder="User ID">
+  <input type="password" id="password" placeholder="Password">
 
-    <button onclick="login()">Login</button>
+  <button onclick="login()">Login</button>
 
-    <p class="error" id="error">Invalid Login</p>
-  </div>
+  <p id="error" style="color:red;"></p>
+</div>
 
-  <script>
-    function login() {
-      var user = document.getElementById("username").value;
-      var pass = document.getElementById("password").value;
+<!-- DASHBOARD -->
+<div class="dashboard" id="dashboardPage">
+  <h2>Dashboard</h2>
+  <p>Welcome User</p>
 
-      if(user == "admin" && pass == "1234") {
-        alert("Login Successful");
-      } else {
-        document.getElementById("error").style.display = "block";
-      }
+  <button onclick="logout()">Logout</button>
+</div>
+
+<script>
+  function login() {
+    var user = document.getElementById("userid").value;
+    var pass = document.getElementById("password").value;
+
+    if(user == "8090524232" && pass == "0123") {
+      document.getElementById("loginPage").style.display = "none";
+      document.getElementById("dashboardPage").style.display = "block";
+    } else {
+      document.getElementById("error").innerText = "Invalid ID or Password";
     }
-  </script>
+  }
+
+  function logout() {
+    document.getElementById("loginPage").style.display = "block";
+    document.getElementById("dashboardPage").style.display = "none";
+  }
+</script>
 
 </body>
 </html>
